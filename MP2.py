@@ -3,17 +3,14 @@ import numpy as np
 import pyomo.environ as pyo
 from pyomo.opt import SolverFactory
 
-UB = np.inf
-LB = -np.inf
-k = 0
-O = []
-
+UpperB = np.inf
+LowerB = -np.inf
 #construct a concrete model
 master = pyo.ConcreteModel(name="MP2")
 
 #sets
-master.S = pyo.RangeSet(0,2)
-master.D = pyo.RangeSet(0,2)
+S = range(3)
+D = range(3)
 #master.D = pyo.RangeSet(0,2,1)
 
 #data
@@ -27,13 +24,11 @@ master.D = pyo.RangeSet(0,2)
 K = 800
 
 #variables
-master.y = pyo.Var(master.S, within = pyo.Binary)  #facility location variable
-master.z = pyo.Var(master.S, within = pyo.NonNegativeReals)  #capacity variable
+master.y = pyo.Var(S, within = pyo.Binary)  #facility location variable
+master.z = pyo.Var(S, within = pyo.NonNegativeReals)  #capacity variable
 master.eta = pyo.Var(within = pyo.NonNegativeReals, initialize = 0)
-master.g = pyo.Var(master.D, bounds = (0,1)) #variables in uncertainty set
-
+#master.g = pyo.Var(D, bounds = (0,1)) #variables in uncertainty set
 #demand = [206 + 40 * master.g[0], 274 + 40 * sub.g[1], 220 + 40 * sub.g[2]] #uncertain demand at site i
-
 
 
 #objective
@@ -45,26 +40,19 @@ master.obj = pyo.Objective(rule = master_obj_rule)
 #constraints
 def C1(model,s):
     return master.z[s] <= 800*master.y[s]
-master.C1 = pyo.Constraint(master.S, rule=C1)
+master.C1 = pyo.Constraint(S, rule=C1)
 
-#def C2(model, d):
-#    return sum(master.g[d] for d in master.D) <= 1.8
-#master.C2 = pyo.Constraint(master.D, rule=C2)
-
-#def C3(model):
-#    return master.g[0]+master.g[1] <= 1.2
-#master.C3 = pyo.Constraint(rule=C3)
-
-def C4(model):
-    return sum(master.z[s] for s in master.S) >= 206 + 274 + 220 + 1.8*40
-master.C4 = pyo.Constraint(rule=C4)
+def C2(model):
+    return sum(master.z[s] for s in S) >= 206 + 274 + 220 + 1.8*40
+master.C2 = pyo.Constraint(rule=C2)
 #This is to guarantee feasibility
 
-#solve
+#solve MP2 and update lower bound
 master_opt = pyo.SolverFactory('glpk')
 master_opt.solve(master) 
-LowerB = master.obj() + pyo.value(master.eta)
+LowerB = master.obj()
 LowerB
+
 
 
 
