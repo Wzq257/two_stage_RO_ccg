@@ -3,7 +3,7 @@
 """
 Created on Fri Mar 12 22:13:09 2021
 
-@author: apple
+@author: Wzq
 """
 import numpy as np
 import pyomo.environ as pyo
@@ -15,8 +15,6 @@ import MP2
 sub = pyo.ConcreteModel(name="SP2")
 
 #constants
-#denom = [206, 274, 220] #nominal demand
-#deunc = [40, 40, 40]  #demand uncertainty coefficients
 C = [[22, 33, 24],
      [33, 23, 30],
      [20, 25, 27]] #unit costs
@@ -47,8 +45,6 @@ for s in S:
         Ma[s,d] = max_D[d]
         Mpi[s] = max(C[s][0], C[s][1], C[s][2])
         Mlambd[d] = max(C[0][d], C[1][d], C[2][d])
-#M = 10000
-
 
 #objective
 def sub_obj_rule(model):
