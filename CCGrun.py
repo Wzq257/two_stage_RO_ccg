@@ -3,24 +3,19 @@
 """
 Created on Thu Mar 18 14:50:31 2021
 
-@author: apple
+@author: Wzq
 """
 import pyomo.environ as pyo
 from pyomo.opt import SolverFactory 
 import MP2
 import SP2
-import numpy as np
 
 eps = 10**(-4)
 S = range(3)
 D = range(3)
 k = 1
 
-#for o in O:
-#    xx = 'add_x' + str(O[k-1])
-    #new_x[name] = MP2.master.add_component(name, pyo.Var(S,D,within=pyo.NonNegativeReals))
-#    MP2.master.xx = pyo.Var(S,D,within=pyo.NonNegativeReals)
-#    new_x[xx] = MP2.master.name
+#created a bunch of variables each iteration
 MP2.master.xx1 = pyo.Var(S,D,within=pyo.NonNegativeReals)
 MP2.master.xx2 = pyo.Var(S,D,within=pyo.NonNegativeReals)
 MP2.master.xx3 = pyo.Var(S,D,within=pyo.NonNegativeReals)
@@ -86,7 +81,6 @@ while MP2.UpperB - MP2.LowerB > eps:
     print("finished deleting")
     
     #add back constraints with updated values
-    
     def con1(model,s):
         return sum(SP2.sub.x[s,d] for d in D) <= pyo.value(MP2.master.z[s]) 
     SP2.sub.capacityLimit = pyo.Constraint(S, rule=con1)
@@ -134,6 +128,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     print("updated upper bound")
     print(MP2.UpperB)
     
+    #update count
     k = k+1
     print(k)
     
