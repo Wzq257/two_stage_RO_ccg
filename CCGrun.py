@@ -15,7 +15,6 @@ eps = 10**(-4)
 S = range(3)
 D = range(3)
 k = 1
-O = [1]
 
 #for o in O:
 #    xx = 'add_x' + str(O[k-1])
@@ -35,17 +34,20 @@ while MP2.UpperB - MP2.LowerB > eps:
     #add new constraints
     def add_bound(model):
         return MP2.master.eta >= sum(SP2.C[s][d]* var_dic[k][s,d] for s in S for d in D) 
-    MP2.master.addBound = pyo.Constraint(rule=add_bound)
+    name1 = "addBound" + str(k)
+    MP2.master.add_component(name1, pyo.Constraint(rule=add_bound))
     print("added bound")
         
     def cap_cut(model,s):
         return sum(var_dic[k][s,d] for d in D) <= MP2.master.z[s]
-    MP2.master.capCut = pyo.Constraint(S, rule=cap_cut)
+    name2 = "capCut" + str(k)
+    MP2.master.add_component(name2, pyo.Constraint(S, rule=cap_cut))
     print("added capacity cut")
 
     def demand_cut(model, d):
         return sum(var_dic[k][s,d] for s in S) >= pyo.value(SP2.demand[d])
-    MP2.master.demandCut = pyo.Constraint(D, rule=demand_cut)
+    name3 = "demandCut" + str(k)
+    MP2.master.add_component(name3, pyo.Constraint(D, rule=demand_cut))
     print("added demand cut")
     
     #go to step 2 (solve MP2 and update lower bound)
@@ -84,20 +86,14 @@ while MP2.UpperB - MP2.LowerB > eps:
     print("finished deleting")
     
     #add back constraints with updated values
-    for s in S:
-        for d in D:
-            SP2.Ma[s,d] = SP2.max_D[d]
-            SP2.Mpi[s] = max(SP2.C[s][0], SP2.C[s][1], SP2.C[s][2])
-            SP2.Mlambd[d] = max(SP2.C[0][d], SP2.C[1][d], SP2.C[2][d])
-    print("big Ms set")
     
     def con1(model,s):
         return sum(SP2.sub.x[s,d] for d in D) <= pyo.value(MP2.master.z[s]) 
     SP2.sub.capacityLimit = pyo.Constraint(S, rule=con1)
 
-    def con2(model, s, d):
+    def con2(model, d):
         return sum(SP2.sub.x[s,d] for s in S) >= SP2.demand[d] 
-    SP2.sub.meetDemand = pyo.Constraint(S, D, rule=con2)
+    SP2.sub.meetDemand = pyo.Constraint(D, rule=con2)
     
     #dual variable constraints
     def con5(model, s, d):
@@ -109,17 +105,17 @@ while MP2.UpperB - MP2.LowerB > eps:
         return SP2.sub.pi[s] <= SP2.Mpi[s]*SP2.sub.beta[s]
     SP2.sub.compSlack1 = pyo.Constraint(S, rule = con6)
 
-    def con7(model, s, d):
+    def con7(model, s):
         return pyo.value(MP2.master.z[s]) - sum(SP2.sub.x[s,d] for d in D) <= SP2.Mpi[s]*(1-SP2.sub.beta[s])
-    SP2.sub.compSlack2 = pyo.Constraint(S, D, rule=con7)
+    SP2.sub.compSlack2 = pyo.Constraint(S, rule=con7)
 
     def con8(model, d):
         return SP2.sub.lambd[d] <= SP2.Mlambd[d]*SP2.sub.v[d]
     SP2.sub.compSlack3 = pyo.Constraint(D, rule=con8)
 
-    def con9(model, s, d):
+    def con9(model, d):
         return sum(SP2.sub.x[s,d] for s in S) - SP2.demand[d] <= SP2.Mlambd[d]*(1-SP2.sub.v[d])
-    SP2.sub.compSlack4 = pyo.Constraint(S, D, rule=con9)
+    SP2.sub.compSlack4 = pyo.Constraint(D, rule=con9)
 
     def con10(model,s,d):
         return SP2.sub.x[s,d] <= SP2.Ma[s,d]*SP2.sub.alpha[s,d]

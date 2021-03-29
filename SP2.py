@@ -85,9 +85,9 @@ def con6(model, s):
     return sub.pi[s] <= Mpi[s]*sub.beta[s]
 sub.compSlack1 = pyo.Constraint(S, rule = con6)
 
-def con7(model, d):
+def con7(model, s):
     return pyo.value(MP2.master.z[s]) - sum(sub.x[s,d] for d in D) <= Mpi[s]*(1-sub.beta[s])
-sub.compSlack2 = pyo.Constraint(D, rule=con7)
+sub.compSlack2 = pyo.Constraint(S, rule=con7)
 
 def con8(model, d):
     return sub.lambd[d] <= Mlambd[d]*sub.v[d]
