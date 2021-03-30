@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar 18 14:50:31 2021
-
 @author: Wzq
 """
 import pyomo.environ as pyo
 from pyomo.opt import SolverFactory 
 import MP2
 import SP2
+import numpy as np
 
 eps = 10**(-4)
 S = range(3)
@@ -28,7 +27,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     print("start")
     #add new constraints
     def add_bound(model):
-        return MP2.master.eta >= sum(SP2.C[s][d]* var_dic[k][s,d] for s in S for d in D) 
+        return sum(SP2.C[s][d]* var_dic[k][s,d] for s in S for d in D) <= MP2.master.eta
     name1 = "addBound" + str(k)
     MP2.master.add_component(name1, pyo.Constraint(rule=add_bound))
     print("added bound")
@@ -40,7 +39,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     print("added capacity cut")
 
     def demand_cut(model, d):
-        return sum(var_dic[k][s,d] for s in S) >= pyo.value(SP2.demand[d])
+        return sum(var_dic[k][s,d] for s in S) >= SP2.demand[d]
     name3 = "demandCut" + str(k)
     MP2.master.add_component(name3, pyo.Constraint(D, rule=demand_cut))
     print("added demand cut")
@@ -51,6 +50,9 @@ while MP2.UpperB - MP2.LowerB > eps:
     MP2.LowerB = MP2.master.obj()
     print("updated lower bound")
     print(MP2.LowerB)
+    print(MP2.master.z[0].value)
+    print(MP2.master.z[1].value)
+    print(MP2.master.z[2].value)
     
     #delete some old constraints in SP2
     SP2.sub.del_component(SP2.sub.capacityLimit)
@@ -88,7 +90,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     def con2(model, d):
         return sum(SP2.sub.x[s,d] for s in S) >= SP2.demand[d] 
     SP2.sub.meetDemand = pyo.Constraint(D, rule=con2)
-    
+
     #dual variable constraints
     def con5(model, s, d):
         return SP2.sub.lambd[d] - SP2.sub.pi[s] <= SP2.C[s][d]
@@ -110,7 +112,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     def con9(model, d):
         return sum(SP2.sub.x[s,d] for s in S) - SP2.demand[d] <= SP2.Mlambd[d]*(1-SP2.sub.v[d])
     SP2.sub.compSlack4 = pyo.Constraint(D, rule=con9)
-
+    
     def con10(model,s,d):
         return SP2.sub.x[s,d] <= SP2.Ma[s,d]*SP2.sub.alpha[s,d]
     SP2.sub.compSlack5 = pyo.Constraint(S, D, rule=con10)
@@ -132,7 +134,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     k = k+1
     print(k)
     
-print(MP2.LowerB)
+print("The optimal total cost is " + str(MP2.LowerB))
     
     
         

@@ -27,7 +27,7 @@ master.eta = pyo.Var(within = pyo.NonNegativeReals, initialize = 0)
 #objective
 def master_obj_rule(model):
     return (400*master.y[0] + 414*master.y[1] + 326*master.y[2]+
-               18*master.z[0] + 25*master.z[1] + 24*master.z[2] + master.eta)
+               18*master.z[0] + 25*master.z[1] + 20*master.z[2] + master.eta)
 master.obj = pyo.Objective(rule = master_obj_rule)
 
 #constraints

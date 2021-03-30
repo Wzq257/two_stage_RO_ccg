@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 12 22:13:09 2021
-
 @author: Wzq
 """
 import numpy as np
@@ -82,7 +80,7 @@ def con6(model, s):
 sub.compSlack1 = pyo.Constraint(S, rule = con6)
 
 def con7(model, s):
-    return pyo.value(MP2.master.z[s]) - sum(sub.x[s,d] for d in D) <= Mpi[s]*(1-sub.beta[s])
+    return MP2.master.z[s].value - sum(sub.x[s,d] for d in D) <= Mpi[s]*(1-sub.beta[s])
 sub.compSlack2 = pyo.Constraint(S, rule=con7)
 
 def con8(model, d):
@@ -104,6 +102,7 @@ sub.compSlack6 = pyo.Constraint(S, D, rule=con11)
 #solve SP2 and update upper bound
 sub_opt = pyo.SolverFactory('glpk') #glpk
 sub_opt.solve(sub)
+demand = [206 + 40 * sub.g[0].value, 274 + 40 * sub.g[1].value, 220 + 40 * sub.g[2].value]
 Q = sub.obj()
 MP2.UpperB = min(MP2.UpperB, MP2.master.obj() - pyo.value(MP2.master.eta) + Q)
 MP2.UpperB
