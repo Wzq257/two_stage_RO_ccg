@@ -126,7 +126,7 @@ while MP2.UpperB - MP2.LowerB > eps:
     sub_opt = pyo.SolverFactory('glpk') #glpk
     sub_opt.solve(SP2.sub)
     Q = SP2.sub.obj()
-    demand = [206 + 40 * SP2.sub.g[0].value, 274 + 40 * SP2.sub.g[1].value, 220 + 40 * SP2.sub.g[2].value]
+    SP2.demand = [206 + 40 * SP2.sub.g[0].value, 274 + 40 * SP2.sub.g[1].value, 220 + 40 * SP2.sub.g[2].value]
     MP2.UpperB = min(MP2.UpperB, MP2.master.obj() - pyo.value(MP2.master.eta) + Q)
     print("updated upper bound")
     print(MP2.UpperB)
